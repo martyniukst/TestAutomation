@@ -13,7 +13,7 @@ ROOT_DIR = os.path.dirname(os.path.abspath("main.py"))
 
 chrome_options = Options()
 chrome_options = selenium.webdriver.ChromeOptions()
-prefs = {"download.default_directory" : ROOT_DIR}
+prefs = {"download.default_directory" : str(ROOT_DIR)+'/output'}
 chrome_options.add_experimental_option("prefs",prefs)
 driver = webdriver.Chrome(ChromeDriverManager().install(),options=chrome_options)
 
