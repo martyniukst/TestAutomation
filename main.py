@@ -94,5 +94,32 @@ def main():
     finally:
         driver.close()
 
+def parse_pdf():
+    import pdfplumber
+    from os import listdir
+    from os.path import isfile, join
+    import pandas as pd
+    df = pd.ExcelFile('Agencies.xlsx').parse('National_Science_Foundation')
+    uii=[]
+    for elem in df['UII']:
+        uii.append(elem)
+    investment=[]
+    for elem in df['Investment Title']:
+        investment.append(elem)
+    mypath = 'output'
+    files = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+    for file in files:
+        with pdfplumber.open(r'output/'+str(file)) as pdf:
+            first_page = pdf.pages[0]
+            list = first_page.extract_text().splitlines()
+            for item in list:
+                if 'Name of this Investment' in item:
+                    print (item.split(': ')[1] in investment)
+                elif 'Unique Investment Identifier (UII)' in item:
+                    print (item.split(': ')[1] in uii)
+
+
+
 if __name__ == "__main__":
     main()
+    parse_pdf()
