@@ -16,18 +16,29 @@ chrome_options = selenium.webdriver.ChromeOptions()
 prefs = {"download.default_directory" : str(ROOT_DIR)+'/output'}
 chrome_options.add_experimental_option("prefs",prefs)
 driver = webdriver.Chrome(ChromeDriverManager().install(),options=chrome_options)
-
-
 workbook = xlsxwriter.Workbook('Agencies.xlsx')
 worksheet = workbook.add_worksheet('Agencies')
-def scraping():
+
+def open_url(url):
+    driver.get(url)
+
+def find_element(by, term):
+    return driver.find_element(by, term)
+
+def find_elements(by, term):
+    return driver.find_elements(by, term)
+
+def save_pdf(by, term):
+    driver.find_element(by, term).click()
+
+
+def main():
     try:
-        driver.get('https://itdashboard.gov/')
+        open_url('https://itdashboard.gov/')
         time.sleep(3)
-        btn = driver.find_element(By.XPATH, '//a[@href="#home-dive-in"]')
-        btn.click()
-        agencies = driver.find_elements(By.CLASS_NAME, 'h4.w200')
-        spending = driver.find_elements(By.CLASS_NAME, 'h1.w900')
+        find_element(By.XPATH, '//a[@href="#home-dive-in"]').click()
+        agencies = find_elements(By.CLASS_NAME, 'h4.w200')
+        spending = find_elements(By.CLASS_NAME, 'h1.w900')
         i = 1
         for item in agencies:
             if item.text != '':
@@ -41,12 +52,12 @@ def scraping():
 
         #get page National Science Foundation
         worksheet2 = workbook.add_worksheet('National_Science_Foundation')
-        driver.get('https://itdashboard.gov/drupal/summary/422')
+        open_url('https://itdashboard.gov/drupal/summary/422')
         time.sleep(10)
         select = Select(driver.find_element(By.NAME, 'investments-table-object_length'))
         select.select_by_visible_text('All')
         time.sleep(10)
-        table = driver.find_element(By.CLASS_NAME, "dataTables_scrollBody")
+        table = find_element(By.CLASS_NAME, "dataTables_scrollBody")
         code = table.get_attribute('outerHTML')
         soup = BeautifulSoup(code, 'html.parser')
         target = soup.find_all('tr')
@@ -66,17 +77,16 @@ def scraping():
                 if 'href' in str(elem):
                     url = 'https://itdashboard.gov'+str(elem).split('"')[3]
                     res.append(url)
-                    driver.get(url)
+                    open_url(url)
                     time.sleep(3)
-                    pdf = driver.find_element(By.LINK_TEXT, "Download Business Case PDF")
-                    pdf.click()
+                    save_pdf(By.LINK_TEXT, "Download Business Case PDF")
                     time.sleep(10)
             try:
                 if len(res)>7:
                     res.append(res[1])
                     res.pop(1)
             except:
-                pass
+                pass #without href
             for idx, month in enumerate(res):
                 worksheet2.write(i, idx, res[idx])
             i = i+1
@@ -85,4 +95,4 @@ def scraping():
         driver.close()
 
 if __name__ == "__main__":
-    scraping()
+    main()
